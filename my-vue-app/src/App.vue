@@ -1,53 +1,121 @@
 <script setup>
-import {reactive} from 'vue'
+ import {ref, computed, onMounted, watch} from 'vue'
+ const isloading = ref(false)
+ const isupdate = ref(false)
+ const isvalid = ref(true)
+ const firstname = ref('')
+ const lastname = ref('')
+ const email = ref('')
+ const errors = ref({})
 
-const gendersList = ['man', 'women', 'LGBTQ']
-const interestslist =['book', 'game', 'movie']
-const formdata = reactive({
-  interest: []
-})
-const submitFrom = () =>{
-  console.log('formdata', formdata)
-}
+ const fullname =computed(() => {
+  return `${firstname.value} ${lastname.value}`
+ })
+
+ const updateprofile = async() =>{
+  isloading.value = true
+  await (new Promise(resolve => setTimeout(resolve,2000)))
+  isloading.value = false
+  isupdate.value = true
+ }
+
+ onMounted(() =>{
+
+ })
+
+ watch([firstname, lastname, email], ()=>{
+    isvalid.value = true
+    isupdate.value = false
+    errors.value = {}
+    if(!validatename(firstname.value)){
+      isvalid.value = false
+      errors.value.firstname = 'NOT YOU'
+    }
+    if(!validatename(lastname.value)){
+      isvalid.value = false
+      errors.value.lastname = 'NOT YOU'
+    }
+    if(!validateemail(email.value)){
+      isvalid.value = false
+      errors.value.email = 'NOT email'
+    }
+ })
+
+ const validatename = (name) =>{
+  const re = /\d/
+  return !re.test(name)
+ }
+ const validateemail = (email) =>{
+  return email.includes('@')
+ }
+
+
+
 </script>
+
 <template>
-  <div class="register">
-    <div class="fistname"><div>
-      Firstname
-    </div> 
-      <input type="text" name="firstname" v-model="formdata.firstname">
+  <div class="Profile">
+    <div class="fullname">
+      <div>
+        Fullname: {{ fullname }}
+      </div>
+       <div>
+        Email: {{ email }}
+       </div>
     </div>
-
+    <div class="firstname">
+      <div>Firstname:</div>
+      <input type="text" v-model="firstname">
+      <div class="error">{{ errors.firstname }}</div>
+    </div>
     <div class="lastname">
-      <div>
-        Lastname
-      </div>
-       <input type="text" name="lastname" v-model="formdata.lastname">
+      <div>Lastname:</div>
+      <input type="text" v-model="lastname">
+      <div class="error">{{ errors.lastname }}</div>
     </div>
-
-    <div class="gender">
-      <div>Gender</div>
-      <div class="gender-for" v-for="gender in gendersList">
-        <input type="radio" name="gender" :value="gender" v-model="formdata.gender"> 
-        {{ gender }}
-      </div>
+    <div class="email">
+      <div>Email:</div>
+      <input type="text" v-model="email">
+      <div class="error">{{ errors.email }}</div>
     </div>
-
-    <div class="interest">
-        <div>Interest</div>
-        <div class="interest-for" v-for="interest in interestslist">
-          <input type="checkbox" name="interest" :value="interest"
-          v-model="formdata.interest"> 
-        {{ interest }}
-        </div>
-      </div>
-
-    <div class="description">
-      <div>
-        Description
-      </div>
-      <textarea name="texarea" id="textarea" cols="25" rows="2" v-model="formdata.textare"></textarea>
+    <div class="loading" v-if="isloading">
+      Loading
     </div>
-    <button @click="submitFrom()">submit</button>
+    <button :disabled="!isvalid" class="btn" @click="updateprofile()">Update profile</button>
+    <div class="update" v-if="isupdate">
+      Profile is Update
+    </div>
   </div>
 </template>
+
+<style>
+.Profile{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  max-width: 320px;
+  margin: 0 auto;
+}
+.btn{
+  width: 100%;
+  height: 24px;
+  margin-top: 20px;
+}
+.Profile > div{
+  width: 100%;
+}
+input{
+  width: 100%;
+}
+.loading{
+  background-color: beige;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  margin: 10px 0;
+}
+.error{
+  color: red;
+}
+</style>
